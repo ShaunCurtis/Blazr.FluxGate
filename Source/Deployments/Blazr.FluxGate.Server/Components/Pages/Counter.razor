@@ -1,0 +1,31 @@
+﻿@page "/counter"
+
+@inject IFluxGateStore<CounterState> Store
+
+<PageTitle>Counter</PageTitle>
+
+<h1>Counter</h1>
+
+<p role="status">Current count: @this.Store.Item.Counter</p>
+
+<button class="btn btn-success" @onclick="IncrementCount">Increment</button>
+<button class="btn btn-danger" @onclick="() => DecrementCount(1)">Decrement by 1</button>
+<button class="btn btn-danger" @onclick="() => DecrementCount(2)">Decrement by 2</button>
+
+@code {
+
+    private void IncrementCount()
+    {
+        this.Store.Dispatch(new CounterIncrementAction(1));
+    }
+
+    private void IncrementCount(int by)
+    {
+        this.Store.Dispatch(new CounterIncrementAction(by));
+    }
+    
+    private void DecrementCount(int by)
+    {
+        this.Store.Dispatch(new CounterDecrementAction(by));
+    }
+}

@@ -1,0 +1,12 @@
+﻿/// ============================================================
+/// Author: Shaun Curtis, Cold Elm Coders
+/// License: Use And Donate
+/// If you use it, donate something to a charity somewhere
+/// ============================================================
+
+namespace Blazr.FluxGate.Server;
+
+public record CounterState : IFluxGateState<CounterState>
+{
+    public int Counter { get; init; }
+}
