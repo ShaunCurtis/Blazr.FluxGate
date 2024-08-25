@@ -8,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.AddScoped<IFluxGateStore<CounterState>, FluxGateStore<CounterState>>();
+builder.Services.AddScoped<FluxGateStore<CounterState>>();
 builder.Services.AddSingleton<FluxGateDispatcher<CounterState>, CounterStateDispatcher>();
 
 var app = builder.Build();

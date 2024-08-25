@@ -6,7 +6,7 @@
 
 namespace Blazr.FluxGate.Server;
 
-public record CounterState : IFluxGateState<CounterState>
+public record CounterState
 {
     public int Counter { get; init; }
 }

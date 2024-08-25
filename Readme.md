@@ -7,7 +7,7 @@ To demonstrate using the `Counter` page:
 We define a State object:
 
 ```csharp
-public record CounterState : IFluxGateState<CounterState>
+public record CounterState
 {
     public int Counter { get; init; }
 }

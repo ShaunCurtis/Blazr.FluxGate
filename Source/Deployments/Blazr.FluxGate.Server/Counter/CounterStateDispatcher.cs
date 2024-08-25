@@ -1,7 +1,7 @@
 ﻿namespace Blazr.FluxGate.Server;
 
-public record CounterIncrementAction(int IncrementBy) : IFluxGateAction;
-public record CounterDecrementAction(int DecrementBy) : IFluxGateAction;
+public readonly record struct CounterIncrementAction(int IncrementBy) : IFluxGateAction;
+public readonly record struct CounterDecrementAction(int DecrementBy) : IFluxGateAction;
 
 public class CounterStateDispatcher: FluxGateDispatcher<CounterState>
 {

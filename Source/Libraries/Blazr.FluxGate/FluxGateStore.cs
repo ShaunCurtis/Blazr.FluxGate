@@ -8,8 +8,8 @@ namespace Blazr.FluxGate;
 
 //public delegate TState FluxDispatherDelegate<TState>(TState inState, IFluxAction action);
 
-public class FluxGateStore<TState> : IFluxGateStore<TState>
-    where TState : IFluxGateState<TState>, new()
+public class FluxGateStore<TState>
+    where TState : new()
 {
     private readonly FluxGateDispatcher<TState> _dispatcher;
 

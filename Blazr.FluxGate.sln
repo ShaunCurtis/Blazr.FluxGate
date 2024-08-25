@@ -11,12 +11,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libraries", "Libraries", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Application", "Application", "{49DFD329-27C8-44EB-A019-7C71728CC72C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blazr.FluxGate.Server", "Source\Deployments\Blazr.FluxGate.Server\Blazr.FluxGate.Server.csproj", "{92C44F9D-1982-42AD-B8A1-CFAE834ED6AB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blazr.FluxGate.Server", "Source\Deployments\Blazr.FluxGate.Server\Blazr.FluxGate.Server.csproj", "{92C44F9D-1982-42AD-B8A1-CFAE834ED6AB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blazr.FluxGate", "Source\Libraries\Blazr.FluxGate\Blazr.FluxGate.csproj", "{669633A2-20BD-4D70-B034-4CD6984FED9F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blazr.FluxGate", "Source\Libraries\Blazr.FluxGate\Blazr.FluxGate.csproj", "{669633A2-20BD-4D70-B034-4CD6984FED9F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{013FADE6-957A-486E-80E3-9BA26B65A8FF}"
 	ProjectSection(SolutionItems) = preProject
+		Flux.md = Flux.md
 		Readme.md = Readme.md
 	EndProjectSection
 EndProject
