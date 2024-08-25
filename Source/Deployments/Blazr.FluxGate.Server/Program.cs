@@ -13,7 +13,7 @@ builder.Services.AddRazorComponents()
 builder.Services.AddScoped<FluxGateStore<CounterState>>();
 builder.Services.AddSingleton<FluxGateDispatcher<CounterState>, CounterStateDispatcher>();
 
-builder.Services.AddScoped<KeyedFluxGateStoreCollection<GridState, Guid>>();
+builder.Services.AddScoped<KeyedFluxGateStore<GridState, Guid>>();
 builder.Services.AddSingleton<FluxGateDispatcher<GridState>, GridStateDispatcher>();
 
 builder.Services.AddSingleton<WeatherProvider>();

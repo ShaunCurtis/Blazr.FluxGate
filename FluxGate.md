@@ -1,4 +1,4 @@
-# Implementing the Flux Pattern
+# FluxGate
 
 There key requirements that define the Flux pattern are:
 

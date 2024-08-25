@@ -1,4 +1,8 @@
-﻿using Microsoft.AspNetCore.Components.QuickGrid;
+﻿/// ============================================================
+/// Author: Shaun Curtis, Cold Elm Coders
+/// License: Use And Donate
+/// If you use it, donate something to a charity somewhere
+/// ============================================================
 
 namespace Blazr.FluxGate.Server;
 
@@ -23,10 +27,12 @@ public class WeatherProvider
     public async ValueTask<GridItemsProviderResult<WeatherForecast>> GetItemsAsync(GridItemsProviderRequest<WeatherForecast> request)
     {
         await Task.Yield();
+
         var query = _weather
             .Skip(request.StartIndex)
             .Take(request.Count ?? 10);
-        return new GridItemsProviderResult<WeatherForecast>() { Items = query.ToList(), TotalItemCount = query.Count() };
+
+        return new GridItemsProviderResult<WeatherForecast>() { Items = query.ToList(), TotalItemCount = _weather.Count() };
     }
 
     protected List<WeatherForecast> GetData()

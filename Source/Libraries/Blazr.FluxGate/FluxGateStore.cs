@@ -5,7 +5,7 @@
 /// ============================================================
 namespace Blazr.FluxGate;
 
-public class FluxGateStore<TState>: IFluxGateStore<TState>
+public class FluxGateStore<TState>
     where TState : new()
 {
     private readonly FluxGateDispatcher<TState> _dispatcher;
@@ -17,6 +17,12 @@ public class FluxGateStore<TState>: IFluxGateStore<TState>
     {
         _dispatcher = fluxStateDispatcher;
         this.Item = new();
+    }
+
+    public FluxGateStore(FluxGateDispatcher<TState> fluxStateDispatcher, TState state)
+    {
+        _dispatcher = fluxStateDispatcher;
+        this.Item = state;
     }
 
     public void Dispatch(IFluxGateAction action)

@@ -1,5 +1,6 @@
-﻿@page "/weather"
+﻿@page "/weathergrid"
 @inject WeatherProvider Provider
+@inject IServiceProvider ServiceProvider
 @inject KeyedFluxGateStore<GridState, Guid> KeyedStore
 
 <PageTitle>Weather</PageTitle>
@@ -27,13 +28,11 @@
 
     private static Guid PageUid = Guid.NewGuid();
     private QuickGrid<WeatherForecast>? _quickGrid;
-    private PaginationState _pagination = new();
+    private PaginationState _pagination = new PaginationState { ItemsPerPage = 10 };
 
     protected override async Task OnInitializedAsync()
     {
         var store = KeyedStore.GetOrCreateStore(PageUid, new GridState(0, this.DefaultPageSize));
-
-        // Set the initial pagination
         _pagination.ItemsPerPage = store.Item.PageSize;
         await _pagination.SetCurrentPageIndexAsync(store.Item.Page);
     }

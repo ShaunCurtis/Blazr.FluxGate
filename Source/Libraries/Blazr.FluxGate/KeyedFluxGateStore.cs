@@ -5,24 +5,76 @@
 /// ============================================================
 namespace Blazr.FluxGate;
 
-public class KeyedFluxGateStore<TState> :IFluxGateStore<TState>
+public class KeyedFluxGateStore<TState, TKey>
     where TState : new()
+    where TKey : notnull
 {
     private readonly FluxGateDispatcher<TState> _dispatcher;
+    private readonly IServiceProvider _serviceProvider;
 
-    public TState Item { get; private set; }
-    public event EventHandler<FluxGateEventArgs>? StateChanged;
+    private Dictionary<TKey, FluxGateStore<TState>> _items = new();
 
-    public KeyedFluxGateStore(FluxGateDispatcher<TState> fluxStateDispatcher, TState state)
+    public KeyedFluxGateStore(IServiceProvider serviceProvider, FluxGateDispatcher<TState> fluxStateDispatcher)
     {
         _dispatcher = fluxStateDispatcher;
-        this.Item = state;
+        _serviceProvider = serviceProvider;
     }
 
-    public void Dispatch(IFluxGateAction action)
+    public FluxGateStore<TState>? GetStore(TKey key)
     {
-        this.Item = _dispatcher.Dispatch(this.Item, action);
+        if (_items.TryGetValue(key, out FluxGateStore<TState>? store))
+            return store;
 
-        this.StateChanged?.Invoke(action, new FluxGateEventArgs() { State = this.Item });
+        return default;
+    }
+
+    public FluxGateStore<TState> GetOrCreateStore(TKey key)
+    {
+        FluxGateStore<TState>? store;
+
+        if (_items.TryGetValue(key, out store))
+            return store;
+
+        store = (FluxGateStore<TState>)ActivatorUtilities.CreateInstance(_serviceProvider, typeof(FluxGateStore<TState>));
+
+        ArgumentNullException.ThrowIfNull(store, $"No store defined in DI for {typeof(TState).Name}.");
+
+        _items.Add(key, store);
+
+        return store;
+    }
+
+    public FluxGateStore<TState> GetOrCreateStore(TKey key, TState initialState)
+    {
+        FluxGateStore<TState>? store;
+
+        if (_items.TryGetValue(key, out store))
+            return store;
+
+        ArgumentNullException.ThrowIfNull(initialState);
+
+        store = (FluxGateStore<TState>)ActivatorUtilities.CreateInstance(_serviceProvider, typeof(FluxGateStore<TState>), initialState);
+
+        ArgumentNullException.ThrowIfNull(store, $"No store defined in DI for {typeof(TState).Name}.");
+
+        _items.Add(key, store);
+
+        return store;
+    }
+
+    public bool RemoveStore(TKey key)
+    {
+        if (_items.ContainsKey(key))
+        {
+            _items.Remove(key);
+            return true;
+        }
+        return false;
+    }
+
+    public void Dispatch(TKey key, IFluxGateAction action)
+    {
+        var store = this.GetOrCreateStore(key);
+        store.Dispatch(action);
     }
 }

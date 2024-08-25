@@ -6,7 +6,7 @@
 
 namespace Blazr.FluxGate.Server;
 
-public readonly record struct UpdateGridPaging(int startIndex, int pageSize) : IFluxGateAction;
+public readonly record struct UpdateGridPaging(int StartIndex, int PageSize) : IFluxGateAction;
 
 public class GridStateDispatcher : FluxGateDispatcher<GridState>
 {
@@ -20,5 +20,5 @@ public class GridStateDispatcher : FluxGateDispatcher<GridState>
     }
 
     private static GridState Mutate(GridState state, UpdateGridPaging action)
-        => state with { StartIndex = state.StartIndex, PageSize = state.PageSize };
+        => state with { StartIndex = action.StartIndex, PageSize = action.PageSize };
 }
