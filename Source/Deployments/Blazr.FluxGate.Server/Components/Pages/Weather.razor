@@ -1,4 +1,7 @@
 ﻿@page "/weather"
+@inject WeatherProvider Provider
+@inject IServiceProvider ServiceProvider
+@inject KeyedFluxGateStoreCollection<GridState, Guid> KeyedStore
 
 <PageTitle>Weather</PageTitle>
 
@@ -6,58 +9,32 @@
 
 <p>This component demonstrates showing data.</p>
 
-@if (forecasts == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Temp. (C)</th>
-                <th>Temp. (F)</th>
-                <th>Summary</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var forecast in forecasts)
-            {
-                <tr>
-                    <td>@forecast.Date.ToShortDateString()</td>
-                    <td>@forecast.TemperatureC</td>
-                    <td>@forecast.TemperatureF</td>
-                    <td>@forecast.Summary</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+<QuickGrid TGridItem="WeatherForecast" ItemsProvider="this.GetItemsAsync" Pagination="_pagination" @ref="_quickGrid">
+    <PropertyColumn Title="Date" Property="(item) => item.Date" />
+    <PropertyColumn Title="Temperature &deg;C" Property="(item) => item.TemperatureC" />
+    <PropertyColumn Title="Temperature &deg;F" Property="(item) => item.TemperatureF" />
+    <PropertyColumn Title="Summary" Property="(item) => item.Summary" />
+</QuickGrid>
+<Paginator State="_pagination"/>
+
 
 @code {
-    private WeatherForecast[]? forecasts;
+    [Parameter] public int DefaultPageSize { get; set; } = 10;
+
+    private static Guid PageUid = Guid.NewGuid();
+    private QuickGrid<WeatherForecast>? _quickGrid;
+    private PaginationState _pagination = new PaginationState { ItemsPerPage = 10 };
 
     protected override async Task OnInitializedAsync()
     {
-        // Simulate asynchronous loading to demonstrate a loading indicator
-        await Task.Delay(500);
-
-        var startDate = DateOnly.FromDateTime(DateTime.Now);
-        var summaries = new[] { "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching" };
-        forecasts = Enumerable.Range(1, 5).Select(index => new WeatherForecast
-        {
-            Date = startDate.AddDays(index),
-            TemperatureC = Random.Shared.Next(-20, 55),
-            Summary = summaries[Random.Shared.Next(summaries.Length)]
-        }).ToArray();
+        var store = KeyedStore.GetOrCreateStore(PageUid, new GridState(0, this.DefaultPageSize));
+        _pagination.ItemsPerPage = store.Item.PageSize;
+        await _pagination.SetCurrentPageIndexAsync(store.Item.Page);
     }
 
-    private class WeatherForecast
+    private ValueTask<GridItemsProviderResult<WeatherForecast>> GetItemsAsync(GridItemsProviderRequest<WeatherForecast> request)
     {
-        public DateOnly Date { get; set; }
-        public int TemperatureC { get; set; }
-        public string? Summary { get; set; }
-        public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+        this.KeyedStore.Dispatch(PageUid, new UpdateGridPaging(startIndex: request.StartIndex, pageSize: request.Count ?? this.DefaultPageSize));
+        return Provider.GetItemsAsync(request);
     }
 }

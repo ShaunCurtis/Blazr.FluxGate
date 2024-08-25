@@ -5,7 +5,7 @@
 /// ============================================================
 namespace Blazr.FluxGate;
 
-public class FluxGateStore<TState>: IFluxGateStore<TState>
+public class KeyedFluxGateStore<TState> :IFluxGateStore<TState>
     where TState : new()
 {
     private readonly FluxGateDispatcher<TState> _dispatcher;
@@ -13,10 +13,10 @@ public class FluxGateStore<TState>: IFluxGateStore<TState>
     public TState Item { get; private set; }
     public event EventHandler<FluxGateEventArgs>? StateChanged;
 
-    public FluxGateStore(FluxGateDispatcher<TState> fluxStateDispatcher)
+    public KeyedFluxGateStore(FluxGateDispatcher<TState> fluxStateDispatcher, TState state)
     {
         _dispatcher = fluxStateDispatcher;
-        this.Item = new();
+        this.Item = state;
     }
 
     public void Dispatch(IFluxGateAction action)

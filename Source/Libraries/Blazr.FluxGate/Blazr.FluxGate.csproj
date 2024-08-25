@@ -20,7 +20,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="KeyedFluxGateStore.cs~RF35996994.TMP" />
     <None Remove="Package.md~RF300a4b48.TMP" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
   </ItemGroup>
 
 	<ItemGroup>
