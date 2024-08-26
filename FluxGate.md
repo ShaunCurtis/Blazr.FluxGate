@@ -1,63 +1,60 @@
 # FluxGate
 
-There key requirements that define the Flux pattern are:
+The generic `TFluxGateItem` represents the tracked object.  
 
-1. The state object is immutable.
-1. Mutations are defined in pure methods.
-1. Mutation occurs by passing an action to a Dispatcher.
+The only constraint applied is `where TFluxGateItem : new()`.
 
-The CounterState is defined as a record with all properties set to `init`.  If default values are required thay should be set in a parameterless constructor.
+## The Supporting Objects
 
-A record is an immutable reference type with value-based equality.
+`FluxGateState` tracks the state of the store.  It's a struct so a value object: a new instance is created every time it's assigned.  It's initial state is either *New* or *Existing*.
 
 ```csharp
-public record CounterState
+public struct FluxGateState
 {
-    public int Counter { get; init; }
+    private bool _isNew;
+    private bool _isModified;
+    private bool _isDeleted;
+
+    public readonly bool IsNew => _isNew;
+    public bool IsDeleted => _isDeleted;
+    public bool IsModified => _isModified;
+
+    public FluxGateState() { }
+
+    public FluxGateState Modified(bool value = true)
+        => new FluxGateState() { _isNew = this.IsNew, _isDeleted = this.IsDeleted, _isModified = value };
+
+    public FluxGateState Deleted(bool value = true)
+        => new FluxGateState() { _isNew = this.IsNew, _isDeleted = value, _isModified = this.IsModified };
+
+    public static FluxGateState AsNew() => new FluxGateState() { _isNew = true };
+    public static FluxGateState AsExisting() => new FluxGateState();
 }
 ```
 
-Next the store:
-
-```csharp
-public class FluxGateStore<TState> 
-    where TState : new()
-{
-    private readonly FluxGateDispatcher<TState> _dispatcher;
-
-    public TState Item { get; private set; } = new();
-    public event EventHandler<FluxGateEventArgs>? StateChanged;
-
-    public FluxGateStore(FluxGateDispatcher<TState> fluxStateDispatcher)
-    {
-        _dispatcher = fluxStateDispatcher;
-    }
-
-    public void Dispatch(IFluxGateAction action)
-    {
-        this.Item = _dispatcher.Dispatch(this.Item, action);
-
-        this.StateChanged?.Invoke(action, new FluxGateEventArgs() { State=this.Item });
-    }
-}
-```
-
-An interface to identify Actions:
+`IFluxGateAction` identifies Actions:
 
 ```csharp
 public interface IFluxGateAction { }
 ```
 
-And an abstract `FluxGateDispatcher` base implementation:
+`FluxGateResult` is a result value object returned by the dispatcher.  It returns the mutated `TFluxGateItem` and the new `FluxGateState`.
 
 ```csharp
-public abstract class FluxGateDispatcher<TState>
+public readonly record struct FluxGateResult<TFluxGateItem>(TFluxGateItem Item, FluxGateState State);
+```
+
+`FluxGateDispatcher` is a base abstract implementation of the Dispatcher.  `Dispatch` takes a store and action as arguments and returns a `FluxGateResult` containing the mutated item and a new state.
+
+```csharp
+public abstract class FluxGateDispatcher<TItem>
+    where TItem : new()
 {
-    public abstract TState Dispatch(TState state, IFluxGateAction action);
+    public abstract FluxGateResult<TItem> Dispatch(FluxGateStore<TItem> store, IFluxGateAction action);
 }
 ```
 
-Finally an `EventArgs` implementation for the `StateChanged` event:
+`FluxGateEventArgs` is an `EventArgs` implementation for the `StateChanged` event:
 
 ```csharp
 public class FluxGateEventArgs : EventArgs
@@ -66,45 +63,61 @@ public class FluxGateEventArgs : EventArgs
 }
 ```
 
-That's it.  Now an implementation.
+### FluxGateStore
 
-The Counter state object.  An immutable `record`.
+`FluxGateStore` provides a wrapper around a `TFluxGateItem` instance.
+
+It has three public properties:
+
+ - `Item` is the current tracked `TFluxGateItem`.  Don't assign it to local variables: you will have a reference to a stale object if it mutates.
+ - `State` is the current state of the store. Note `FluxGateState` is a value object.
+ - `StateChanged` is an Event raised whenever the `TFluxGateItem` instance is mutated. 
+
+`_dispatcher` holds a reference to the `FluxGateDispatcher` registered against `TFluxGateItem`.
 
 ```csharp
-public record CounterState
+public class FluxGateStore<TFluxGateItem>
+    where TFluxGateItem : new()
 {
-    public int Counter { get; init; }
-}
-```
+    private readonly FluxGateDispatcher<TFluxGateItem> _dispatcher;
 
-Two actions:
+    public TFluxGateItem Item { get; private set; }
+    public FluxGateState State { get; private set; } = FluxGateState.AsNew();
+    public event EventHandler<FluxGateEventArgs>? StateChanged;
+```
+Two Constructors:
+ - The first is the DI constructor that just gets the DI registered `FluxGateDispatcher<TFluxGateItem>`.  It initializes the store with a **New** `TFluxGateItem`.
+ - The second takes an additional `TFluxGateItem` argument.  It's used by `ActivatorUtilities` in `KeyedFluxGateStore` to create store instances outside DI control. 
 
 ```csharp
-public readonly record struct CounterIncrementAction(int IncrementBy) : IFluxGateAction;
-public readonly record struct CounterDecrementAction(int DecrementBy) : IFluxGateAction;
-```
-
-And the Dispatcher:
-
-```csharp
-public class CounterStateDispatcher: FluxGateDispatcher<CounterState>
-{
-    public override CounterState Dispatch(CounterState state, IFluxGateAction action)
+    public FluxGateStore(FluxGateDispatcher<TFluxGateItem> fluxStateDispatcher)
     {
-        return action switch
-        {
-            CounterIncrementAction a1 => Mutate(state, a1),
-            CounterDecrementAction a2 => Mutate(state, a2),
-            _ => throw new NotImplementedException($"No Mutation defined for {action.GetType()}")
-        };
+        _dispatcher = fluxStateDispatcher;
+        this.Item = new();
     }
 
-    private static CounterState Mutate(CounterState state, CounterIncrementAction action)
-        => state with { Counter = state.Counter + action.IncrementBy };
+    public FluxGateStore(FluxGateDispatcher<TFluxGateItem> fluxStateDispatcher, TFluxGateItem state)
+    {
+        _dispatcher = fluxStateDispatcher;
+        this.Item = state;
+        this.State = FluxGateState.AsExisting();
+    }
+```
 
-    public static CounterState Mutate(CounterState state, CounterDecrementAction action)
-        => state with { Counter = state.Counter - action.DecrementBy };
+`Dispatch` dispatches the provided `IFluxGateAction` to the registered `FluxGateDispatcher`.  It applies the returned `Item` and `State` to the store.
+
+```csharp
+    public void Dispatch(IFluxGateAction action)
+    {
+        var result = _dispatcher.Dispatch(this, action);
+        this.Item = result.Item;
+        this.State = result.State;
+
+        this.StateChanged?.Invoke(action, new FluxGateEventArgs() { State = this.Item });
+    }
 }
 ```
 
-The reducer methods are in the dispatcher class, and are private, so only usable by the dispatcher.  They can be in separate static classes, but that exposes their functionality to the rest of the application. 
+That's it.  
+
+[You can see an implementation here.](Counter-Example.md)

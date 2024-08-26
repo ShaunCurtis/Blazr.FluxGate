@@ -5,29 +5,33 @@
 /// ============================================================
 namespace Blazr.FluxGate;
 
-public class FluxGateStore<TState>
-    where TState : new()
+public class FluxGateStore<TFluxGateItem>
+    where TFluxGateItem : new()
 {
-    private readonly FluxGateDispatcher<TState> _dispatcher;
+    private readonly FluxGateDispatcher<TFluxGateItem> _dispatcher;
 
-    public TState Item { get; private set; }
+    public TFluxGateItem Item { get; private set; }
+    public FluxGateState State { get; private set; } = FluxGateState.AsNew();
     public event EventHandler<FluxGateEventArgs>? StateChanged;
 
-    public FluxGateStore(FluxGateDispatcher<TState> fluxStateDispatcher)
+    public FluxGateStore(FluxGateDispatcher<TFluxGateItem> fluxStateDispatcher)
     {
         _dispatcher = fluxStateDispatcher;
         this.Item = new();
     }
 
-    public FluxGateStore(FluxGateDispatcher<TState> fluxStateDispatcher, TState state)
+    public FluxGateStore(FluxGateDispatcher<TFluxGateItem> fluxStateDispatcher, TFluxGateItem state)
     {
         _dispatcher = fluxStateDispatcher;
         this.Item = state;
+        this.State = FluxGateState.AsExisting();
     }
 
     public void Dispatch(IFluxGateAction action)
     {
-        this.Item = _dispatcher.Dispatch(this.Item, action);
+        var result = _dispatcher.Dispatch(this, action);
+        this.Item = result.Item;
+        this.State = result.State;
 
         this.StateChanged?.Invoke(action, new FluxGateEventArgs() { State = this.Item });
     }

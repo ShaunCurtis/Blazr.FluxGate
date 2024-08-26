@@ -6,8 +6,4 @@
 
 namespace Blazr.FluxGate;
 
-public abstract class FluxGateDispatcher<TFluxGateItem>
-    where TFluxGateItem : new()
-{
-    public abstract FluxGateResult<TFluxGateItem> Dispatch(FluxGateStore<TFluxGateItem> store, IFluxGateAction action);
-}
+public readonly record struct FluxGateResult<TFluxGateItem>(TFluxGateItem Item, FluxGateState State);

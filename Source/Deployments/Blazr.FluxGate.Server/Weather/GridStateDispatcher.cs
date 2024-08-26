@@ -10,15 +10,20 @@ public readonly record struct UpdateGridPaging(int StartIndex, int PageSize) : I
 
 public class GridStateDispatcher : FluxGateDispatcher<GridState>
 {
-    public override GridState Dispatch(GridState state, IFluxGateAction action)
+    public override FluxGateResult<GridState> Dispatch(FluxGateStore< GridState> store, IFluxGateAction action)
     {
         return action switch
         {
-            UpdateGridPaging a1 => Mutate(state, a1),
+            UpdateGridPaging a1 => Mutate(store, a1),
             _ => throw new NotImplementedException($"No Mutation defined for {action.GetType()}")
         };
     }
 
-    private static GridState Mutate(GridState state, UpdateGridPaging action)
-        => state with { StartIndex = action.StartIndex, PageSize = action.PageSize };
+    private static FluxGateResult<GridState> Mutate(FluxGateStore<GridState> store, UpdateGridPaging action)
+    { 
+        var newItem =  store.Item with { StartIndex = action.StartIndex, PageSize = action.PageSize };
+        var state = newItem != store.Item ? store.State.Modified() : store.State;
+
+        return new FluxGateResult<GridState>(newItem, state);    
+    }
 }
