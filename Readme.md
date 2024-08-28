@@ -8,7 +8,9 @@ It implements these primary Flux pattern requirements:
 1. Mutations are defined in pure methods.
 1. Mutation occurs by passing an action to a Dispatcher.
 
-In addition it implements the concept of the keyed store that maintains multiple individual stores of a specific type with a unique key.
+In addition it implements:
+1. State tracking.  Important when applying the Flux pattern to composite [Aggregate] data objects.
+1. A keyed store that maintains multiple individual stores of a specific type with a unique key.
 
 You can see two examples:
 

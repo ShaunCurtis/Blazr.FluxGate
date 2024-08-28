@@ -21,21 +21,31 @@ A Dispatcher to apply the actions:
 ```csharp
 public class CounterStateDispatcher: FluxGateDispatcher<CounterState>
 {
-    public override CounterState Dispatch(CounterState state, IFluxGateAction action)
+    public override FluxGateResult<CounterState> Dispatch(FluxGateStore<CounterState> store, IFluxGateAction action)
     {
         return action switch
         {
-            CounterIncrementAction a1 => Mutate(state, a1),
-            CounterDecrementAction a2 => Mutate(state, a2),
+            CounterIncrementAction a1 => Mutate(store, a1),
+            CounterDecrementAction a2 => Mutate(store, a2),
             _ => throw new NotImplementedException($"No Mutation defined for {action.GetType()}")
         };
     }
 
-    private static CounterState Mutate(CounterState state, CounterIncrementAction action)
-        => state with { Counter = state.Counter + action.IncrementBy };
+    private static FluxGateResult<CounterState> Mutate(FluxGateStore<CounterState> store, CounterIncrementAction action)
+    {
+        var state = store.State.Modified();
+        var newItem = store.Item with { Counter = store.Item.Counter + action.IncrementBy };
 
-    public static CounterState Mutate(CounterState state, CounterDecrementAction action)
-        => state with { Counter = state.Counter - action.DecrementBy };
+        return new(newItem, state);
+    }
+
+    public static FluxGateResult<CounterState> Mutate(FluxGateStore<CounterState> store, CounterDecrementAction action)
+    {
+        var state = store.State.Modified();
+        var newItem = store.Item with { Counter = store.Item.Counter - action.DecrementBy };
+
+        return new(newItem, state);
+    }
 }
 ```
 
