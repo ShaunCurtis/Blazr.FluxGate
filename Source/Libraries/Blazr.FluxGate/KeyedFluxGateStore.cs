@@ -14,6 +14,9 @@ public class KeyedFluxGateStore<TFluxGateItem, TKey>
 
     private Dictionary<TKey, FluxGateStore<TFluxGateItem>> _items = new();
 
+    public IEnumerable<TFluxGateItem> Items => _items.Select(item => item.Value.Item).AsEnumerable();
+    public IEnumerable<FluxGateStore<TFluxGateItem>> Stores => _items.Select(item => item.Value).AsEnumerable();
+
     public KeyedFluxGateStore(IServiceProvider serviceProvider, FluxGateDispatcher<TFluxGateItem> fluxStateDispatcher)
     {
         _dispatcher = fluxStateDispatcher;
@@ -44,7 +47,7 @@ public class KeyedFluxGateStore<TFluxGateItem, TKey>
         return store;
     }
 
-    public FluxGateStore<TFluxGateItem> GetOrCreateStore(TKey key, TFluxGateItem initialState)
+    public FluxGateStore<TFluxGateItem> GetOrCreateStore(TKey key, TFluxGateItem initialState, bool isNew = false)
     {
         FluxGateStore<TFluxGateItem>? store;
 
@@ -53,7 +56,7 @@ public class KeyedFluxGateStore<TFluxGateItem, TKey>
 
         ArgumentNullException.ThrowIfNull(initialState);
 
-        store = (FluxGateStore<TFluxGateItem>)ActivatorUtilities.CreateInstance(_serviceProvider, typeof(FluxGateStore<TFluxGateItem>), initialState);
+        store = (FluxGateStore<TFluxGateItem>)ActivatorUtilities.CreateInstance(_serviceProvider, typeof(FluxGateStore<TFluxGateItem>), new object[] { initialState, isNew });
 
         ArgumentNullException.ThrowIfNull(store, $"No store defined in DI for {typeof(TFluxGateItem).Name}.");
 
@@ -72,9 +75,9 @@ public class KeyedFluxGateStore<TFluxGateItem, TKey>
         return false;
     }
 
-    public void Dispatch(TKey key, IFluxGateAction action)
+    public FluxGateResult<TFluxGateItem> Dispatch(TKey key, IFluxGateAction action)
     {
         var store = this.GetOrCreateStore(key);
-        store.Dispatch(action);
+        return store.Dispatch(action);
     }
 }

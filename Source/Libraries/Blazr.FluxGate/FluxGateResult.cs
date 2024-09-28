@@ -6,4 +6,4 @@
 
 namespace Blazr.FluxGate;
 
-public readonly record struct FluxGateResult<TFluxGateItem>(TFluxGateItem Item, FluxGateState State);
+public readonly record struct FluxGateResult<TFluxGateItem>(bool Success, TFluxGateItem Item, FluxGateState State, string? Message = null );

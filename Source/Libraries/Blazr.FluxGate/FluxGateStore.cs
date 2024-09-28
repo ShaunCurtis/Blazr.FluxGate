@@ -27,12 +27,23 @@ public class FluxGateStore<TFluxGateItem>
         this.State = FluxGateState.AsExisting();
     }
 
-    public void Dispatch(IFluxGateAction action)
+    public FluxGateStore(FluxGateDispatcher<TFluxGateItem> fluxStateDispatcher, TFluxGateItem state, bool isNew)
+    {
+        _dispatcher = fluxStateDispatcher;
+        this.Item = state;
+        this.State = isNew ? FluxGateState.AsNew() : FluxGateState.AsExisting();
+    }
+
+    public FluxGateResult<TFluxGateItem> Dispatch(IFluxGateAction action)
     {
         var result = _dispatcher.Dispatch(this, action);
-        this.Item = result.Item;
-        this.State = result.State;
+        if (result.Success)
+        {
+            this.Item = result.Item;
+            this.State = result.State;
 
-        this.StateChanged?.Invoke(action, new FluxGateEventArgs() { State = this.Item });
+            this.StateChanged?.Invoke(action.Sender, new FluxGateEventArgs() { State = this.Item });
+        }
+        return result;
     }
 }

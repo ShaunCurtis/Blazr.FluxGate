@@ -6,8 +6,8 @@
 
 namespace Blazr.FluxGate.Server;
 
-public readonly record struct CounterIncrementAction(int IncrementBy) : IFluxGateAction;
-public readonly record struct CounterDecrementAction(int DecrementBy) : IFluxGateAction;
+public readonly record struct CounterIncrementAction(object Sender, int IncrementBy) : IFluxGateAction;
+public readonly record struct CounterDecrementAction(object Sender, int DecrementBy) : IFluxGateAction;
 
 public class CounterStateDispatcher : FluxGateDispatcher<CounterState>
 {
@@ -26,7 +26,7 @@ public class CounterStateDispatcher : FluxGateDispatcher<CounterState>
         var state = store.State.Modified();
         var newItem = store.Item with { Counter = store.Item.Counter + action.IncrementBy };
 
-        return new(newItem, state);
+        return new(true, newItem, state);
     }
 
     public static FluxGateResult<CounterState> Mutate(FluxGateStore<CounterState> store, CounterDecrementAction action)
@@ -34,6 +34,6 @@ public class CounterStateDispatcher : FluxGateDispatcher<CounterState>
         var state = store.State.Modified();
         var newItem = store.Item with { Counter = store.Item.Counter - action.DecrementBy };
 
-        return new(newItem, state);
+        return new(true,newItem, state);
     }
 }

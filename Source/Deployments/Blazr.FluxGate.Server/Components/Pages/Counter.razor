@@ -16,16 +16,16 @@
 
     private void IncrementCount()
     {
-        this.Store.Dispatch(new CounterIncrementAction(1));
+        this.Store.Dispatch(new CounterIncrementAction(this, 1));
     }
 
     private void IncrementCount(int by)
     {
-        this.Store.Dispatch(new CounterIncrementAction(by));
+        this.Store.Dispatch(new CounterIncrementAction(this, by));
     }
     
     private void DecrementCount(int by)
     {
-        this.Store.Dispatch(new CounterDecrementAction(by));
+        this.Store.Dispatch(new CounterDecrementAction(this, by));
     }
 }

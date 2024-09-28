@@ -39,7 +39,7 @@
 
     private ValueTask<GridItemsProviderResult<WeatherForecast>> GetItemsAsync(GridItemsProviderRequest<WeatherForecast> request)
     {
-        this.KeyedStore.Dispatch(PageUid, new UpdateGridPaging(StartIndex: request.StartIndex, PageSize: request.Count ?? this.DefaultPageSize));
+        this.KeyedStore.Dispatch(PageUid, new UpdateGridPaging(this, StartIndex: request.StartIndex, PageSize: request.Count ?? this.DefaultPageSize));
         return Provider.GetItemsAsync(request);
     }
 }
